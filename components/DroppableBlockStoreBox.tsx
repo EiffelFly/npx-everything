@@ -5,9 +5,9 @@ interface Props {
   className?: string;
 }
 
-const DroppableBlockStream: FC<Props> = ({ children, className }) => {
+const DroppableBlockStoreBox: FC<Props> = ({ children, className }) => {
   return (
-    <Droppable droppableId="droppable-block-stream">
+    <Droppable droppableId="droppable-block-store-box">
       {(provided) => (
         <div
           className={className || ""} 
@@ -22,4 +22,4 @@ const DroppableBlockStream: FC<Props> = ({ children, className }) => {
   )
 }
 
-export default DroppableBlockStream
+export default DroppableBlockStoreBox
