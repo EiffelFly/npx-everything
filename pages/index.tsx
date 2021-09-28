@@ -70,14 +70,42 @@ const App: FC<Props> = () => {
 
     // We don't want item in store box to be dragged
     if (
-      destination.droppableId === "droppable-block-store-box" &&
+      destination.droppableId === "block-store-box" &&
       source.droppableId === "droppable-block-store-box"
     ) {
       return;
     }
 
     // We don't want item drop back into store box
-    if (destination.droppableId === "droppable-block-store-box") {
+    if (destination.droppableId === "block-store-box") {
+      return;
+    }
+
+    // User can reOrder the item in stream
+    if (destination.droppableId === "block-stream" && source.droppableId === "block-stream") {
+      const newOrder = reOrder(
+        items.droppables["block-stream"].taskIDs,
+        source.index,
+        destination.index
+      );
+
+      let newItems = {
+        blocks: {
+          initial: { ...items.blocks.initial },
+          customize: { ...items.blocks.customize },
+        },
+        droppables: {
+          "block-store-box": { ...items.droppables["block-store-box"] },
+          "block-stream": {
+            id: "block-stream",
+            title: "Stream",
+            taskIDs: newOrder,
+          },
+        },
+      };
+
+      console.log(newItems)
+      setItems(newItems);
       return;
     }
 
@@ -113,8 +141,6 @@ const App: FC<Props> = () => {
     };
 
     setItems(newItems);
-
-    console.log(newItems);
   };
 
   return (
@@ -150,7 +176,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   return { props: {} };
 };
 
-const reorder = (list: [], startIndex: number, endIndex: number) => {
+const reOrder = (list: any[], startIndex: number, endIndex: number) => {
   const result = Array.from(list);
   const [removed] = result.splice(startIndex, 1);
   result.splice(endIndex, 0, removed);
