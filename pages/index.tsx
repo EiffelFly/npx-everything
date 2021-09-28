@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import {
   DragDropContext,
   resetServerContext,
@@ -8,6 +8,7 @@ import DraggableWrapper from "../components/DraggableWrapper";
 import DroppableBlockStoreBox from "../components/DroppableBlockStoreBox";
 import DroppableBlockStream from "../components/DroppableBlockStream";
 import { GetServerSideProps } from "next";
+import { v4 as uuidv4 } from "uuid";
 
 interface Props {}
 
@@ -17,28 +18,31 @@ interface DndDropResultDestination {
 }
 
 interface DndDropResultSource {
-  draggableId: string;
+  droppableId: string;
   index: number;
 }
 
 const initialData = {
-  tasks: {
-    githubClone: {
-      id: "githubClone",
-      content: "clone this github",
+  blocks: {
+    initial: {
+      githubClone: {
+        id: "githubClone",
+        content: "clone this github",
+      },
+      npxScript: {
+        id: "npxScript",
+        content: "Execute this script",
+      },
     },
-    npxScript: {
-      id: "npxScript",
-      content: "Execute this script",
-    },
+    customize: {},
   },
   droppables: {
-    blockStoreBox: {
+    "block-store-box": {
       id: "block-store-box",
       title: "Storebox",
       taskIDs: ["githubClone", "npxScript"],
     },
-    blockStream: {
+    "block-stream": {
       id: "block-stream",
       title: "Stream",
       taskIDs: [],
@@ -47,6 +51,8 @@ const initialData = {
 };
 
 const App: FC<Props> = () => {
+  const [items, setItems] = useState(initialData);
+
   const onDragEndHandler = (result: DropResult) => {
     console.log(result);
     const { destination, source, draggableId } = result;
@@ -74,25 +80,60 @@ const App: FC<Props> = () => {
     if (destination.droppableId === "droppable-block-store-box") {
       return;
     }
+
+    const blockID = items.droppables["block-store-box"].taskIDs[source.index];
+
+    const [newOrder, newID] = copy(
+      items.droppables[source.droppableId].taskIDs,
+      items.droppables[destination.droppableId].taskIDs,
+      source,
+      destination
+    );
+
+    console.log(newOrder);
+
+    let newItems = {
+      blocks: {
+        initial: { ...items.blocks.initial },
+        customize: { ...items.blocks.customize },
+      },
+      droppables: {
+        "block-store-box": { ...items.droppables["block-store-box"] },
+        "block-stream": {
+          id: "block-stream",
+          title: "Stream",
+          taskIDs: newOrder,
+        },
+      },
+    };
+
+    newItems.blocks.customize[newID] = {
+      id: newID,
+      content: items.blocks.initial[blockID].content,
+    };
+
+    setItems(newItems);
+
+    console.log(newItems);
   };
 
   return (
     <div>
       <DragDropContext onDragEnd={onDragEndHandler}>
-        <div className="flex flex-row">
+        <div className="flex flex-row gap-x-4">
           <DroppableBlockStoreBox
             className={"flex flex-col w-96 border border-gray-700"}
           >
-            {initialData.droppables.blockStoreBox.taskIDs.map((id, index) => (
+            {items.droppables["block-store-box"].taskIDs.map((id, index) => (
               <DraggableWrapper id={id} index={index} key={id}>
-                {initialData.tasks[id].content}
+                {items.blocks.initial[id].content}
               </DraggableWrapper>
             ))}
           </DroppableBlockStoreBox>
           <DroppableBlockStream className={"w-96 border border-gray-700"}>
-            {initialData.droppables.blockStream.taskIDs.map((id, index) => (
+            {items.droppables["block-stream"].taskIDs.map((id, index) => (
               <DraggableWrapper id={id} index={index} key={id}>
-                {initialData.tasks[id].content}
+                {items.blocks.customize[id].content}
               </DraggableWrapper>
             ))}
           </DroppableBlockStream>
@@ -118,8 +159,8 @@ const reorder = (list: [], startIndex: number, endIndex: number) => {
 };
 
 const copy = (
-  source: string[],
-  destination: string[],
+  source: any[],
+  destination: any[],
   droppableSource: DndDropResultSource,
   droppableDestination: DndDropResultDestination
 ) => {
@@ -127,8 +168,10 @@ const copy = (
 
   const sourceClone = Array.from(source);
   const destClone = Array.from(destination);
-  const item = sourceClone[droppableSource.index];
+  let item = sourceClone[droppableSource.index];
+  const newID = uuidv4();
+  item = item + "-" + newID;
 
   destClone.splice(droppableDestination.index, 0, item);
-  return destClone;
+  return [destClone, item];
 };
