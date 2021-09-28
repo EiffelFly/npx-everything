@@ -9,6 +9,8 @@ import DroppableBlockStoreBox from "../components/DroppableBlockStoreBox";
 import DroppableBlockStream from "../components/DroppableBlockStream";
 import { GetServerSideProps } from "next";
 import { v4 as uuidv4 } from "uuid";
+import BaseContainer from "../components/BaseContainer";
+import SectionContainer from "../components/SectionContainer";
 
 interface Props {}
 
@@ -82,7 +84,10 @@ const App: FC<Props> = () => {
     }
 
     // User can reOrder the item in stream
-    if (destination.droppableId === "block-stream" && source.droppableId === "block-stream") {
+    if (
+      destination.droppableId === "block-stream" &&
+      source.droppableId === "block-stream"
+    ) {
       const newOrder = reOrder(
         items.droppables["block-stream"].taskIDs,
         source.index,
@@ -104,7 +109,7 @@ const App: FC<Props> = () => {
         },
       };
 
-      console.log(newItems)
+      console.log(newItems);
       setItems(newItems);
       return;
     }
@@ -144,28 +149,33 @@ const App: FC<Props> = () => {
   };
 
   return (
-    <div>
-      <DragDropContext onDragEnd={onDragEndHandler}>
-        <div className="flex flex-row gap-x-4">
-          <DroppableBlockStoreBox
-            className={"flex flex-col w-96 border border-gray-700"}
-          >
-            {items.droppables["block-store-box"].taskIDs.map((id, index) => (
-              <DraggableWrapper id={id} index={index} key={id}>
-                {items.blocks.initial[id].content}
-              </DraggableWrapper>
-            ))}
-          </DroppableBlockStoreBox>
-          <DroppableBlockStream className={"w-96 border border-gray-700"}>
-            {items.droppables["block-stream"].taskIDs.map((id, index) => (
-              <DraggableWrapper id={id} index={index} key={id}>
-                {items.blocks.customize[id].content}
-              </DraggableWrapper>
-            ))}
-          </DroppableBlockStream>
-        </div>
-      </DragDropContext>
-    </div>
+    <BaseContainer>
+      <SectionContainer>
+        <DragDropContext onDragEnd={onDragEndHandler}>
+          <div className="flex flex-row gap-x-4">
+            <DroppableBlockStoreBox
+              className={"flex flex-col flex-1 border border-gray-700"}
+            >
+              {items.droppables["block-store-box"].taskIDs.map((id, index) => (
+                <DraggableWrapper id={id} index={index} key={id}>
+                  {items.blocks.initial[id].content}
+                </DraggableWrapper>
+              ))}
+            </DroppableBlockStoreBox>
+            <DroppableBlockStream className={"flex flex-col flex-1 border border-gray-700"}>
+              {items.droppables["block-stream"].taskIDs.map((id, index) => (
+                <DraggableWrapper id={id} index={index} key={id}>
+                  {items.blocks.customize[id].content}
+                </DraggableWrapper>
+              ))}
+            </DroppableBlockStream>
+            <div className="border border-gray-700">
+
+            </div>
+          </div>
+        </DragDropContext>
+      </SectionContainer>
+    </BaseContainer>
   );
 };
 

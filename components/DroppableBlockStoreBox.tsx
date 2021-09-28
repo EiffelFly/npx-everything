@@ -7,7 +7,7 @@ interface Props {
 
 const DroppableBlockStoreBox: FC<Props> = ({ children, className }) => {
   return (
-    <Droppable droppableId="block-store-box">
+    <Droppable droppableId="block-store-box" isDropDisabled={true}>
       {(provided) => (
         <div
           className={className || ""} 
