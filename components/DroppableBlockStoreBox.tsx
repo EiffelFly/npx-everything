@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Droppable } from 'react-beautiful-dnd';
+import { Droppable, DroppableProvided } from 'react-beautiful-dnd';
 
 interface Props {
   className?: string;
@@ -7,8 +7,8 @@ interface Props {
 
 const DroppableBlockStoreBox: FC<Props> = ({ children, className }) => {
   return (
-    <Droppable droppableId="droppable-block-store-box">
-      {(provided) => (
+    <Droppable droppableId="block-store-box" isDropDisabled={true}>
+      {(provided: DroppableProvided) => (
         <div
           className={className || ""} 
           ref={provided.innerRef}

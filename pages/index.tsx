@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import {
   DragDropContext,
   resetServerContext,
@@ -8,6 +8,10 @@ import DraggableWrapper from "../components/DraggableWrapper";
 import DroppableBlockStoreBox from "../components/DroppableBlockStoreBox";
 import DroppableBlockStream from "../components/DroppableBlockStream";
 import { GetServerSideProps } from "next";
+import { v4 as uuidv4 } from "uuid";
+import BaseContainer from "../components/BaseContainer";
+import SectionContainer from "../components/SectionContainer";
+import BlockContainer from "../components/BlockContainer";
 
 interface Props {}
 
@@ -17,28 +21,31 @@ interface DndDropResultDestination {
 }
 
 interface DndDropResultSource {
-  draggableId: string;
+  droppableId: string;
   index: number;
 }
 
 const initialData = {
-  tasks: {
-    githubClone: {
-      id: "githubClone",
-      content: "clone this github",
+  blocks: {
+    initial: {
+      githubClone: {
+        id: "githubClone",
+        content: "clone this github",
+      },
+      npxScript: {
+        id: "npxScript",
+        content: "Execute this script",
+      },
     },
-    npxScript: {
-      id: "npxScript",
-      content: "Execute this script",
-    },
+    customize: {},
   },
   droppables: {
-    blockStoreBox: {
+    "block-store-box": {
       id: "block-store-box",
       title: "Storebox",
       taskIDs: ["githubClone", "npxScript"],
     },
-    blockStream: {
+    "block-stream": {
       id: "block-stream",
       title: "Stream",
       taskIDs: [],
@@ -47,6 +54,8 @@ const initialData = {
 };
 
 const App: FC<Props> = () => {
+  const [items, setItems] = useState(initialData);
+
   const onDragEndHandler = (result: DropResult) => {
     console.log(result);
     const { destination, source, draggableId } = result;
@@ -64,41 +73,114 @@ const App: FC<Props> = () => {
 
     // We don't want item in store box to be dragged
     if (
-      destination.droppableId === "droppable-block-store-box" &&
+      destination.droppableId === "block-store-box" &&
       source.droppableId === "droppable-block-store-box"
     ) {
       return;
     }
 
     // We don't want item drop back into store box
-    if (destination.droppableId === "droppable-block-store-box") {
+    if (destination.droppableId === "block-store-box") {
       return;
     }
+
+    // User can reOrder the item in stream
+    if (
+      destination.droppableId === "block-stream" &&
+      source.droppableId === "block-stream"
+    ) {
+      const newOrder = reOrder(
+        items.droppables["block-stream"].taskIDs,
+        source.index,
+        destination.index
+      );
+
+      let newItems = {
+        blocks: {
+          initial: { ...items.blocks.initial },
+          customize: { ...items.blocks.customize },
+        },
+        droppables: {
+          "block-store-box": { ...items.droppables["block-store-box"] },
+          "block-stream": {
+            id: "block-stream",
+            title: "Stream",
+            taskIDs: newOrder,
+          },
+        },
+      };
+
+      console.log(newItems);
+      setItems(newItems);
+      return;
+    }
+
+    const blockID = items.droppables["block-store-box"].taskIDs[source.index];
+
+    const [newOrder, newID] = copy(
+      items.droppables[source.droppableId].taskIDs,
+      items.droppables[destination.droppableId].taskIDs,
+      source,
+      destination
+    );
+
+    console.log(newOrder);
+
+    let newItems = {
+      blocks: {
+        initial: { ...items.blocks.initial },
+        customize: { ...items.blocks.customize },
+      },
+      droppables: {
+        "block-store-box": { ...items.droppables["block-store-box"] },
+        "block-stream": {
+          id: "block-stream",
+          title: "Stream",
+          taskIDs: newOrder,
+        },
+      },
+    };
+
+    newItems.blocks.customize[newID] = {
+      id: newID,
+      content: items.blocks.initial[blockID].content,
+    };
+
+    setItems(newItems);
   };
 
   return (
-    <div>
-      <DragDropContext onDragEnd={onDragEndHandler}>
-        <div className="flex flex-row">
-          <DroppableBlockStoreBox
-            className={"flex flex-col w-96 border border-gray-700"}
-          >
-            {initialData.droppables.blockStoreBox.taskIDs.map((id, index) => (
-              <DraggableWrapper id={id} index={index} key={id}>
-                {initialData.tasks[id].content}
-              </DraggableWrapper>
-            ))}
-          </DroppableBlockStoreBox>
-          <DroppableBlockStream className={"w-96 border border-gray-700"}>
-            {initialData.droppables.blockStream.taskIDs.map((id, index) => (
-              <DraggableWrapper id={id} index={index} key={id}>
-                {initialData.tasks[id].content}
-              </DraggableWrapper>
-            ))}
-          </DroppableBlockStream>
-        </div>
-      </DragDropContext>
-    </div>
+    <BaseContainer>
+      <SectionContainer>
+        <DragDropContext onDragEnd={onDragEndHandler}>
+          <div className="flex flex-row gap-x-4">
+            <DroppableBlockStoreBox
+              className={"flex flex-col flex-1 border border-gray-700 p-4"}
+            >
+              {items.droppables["block-store-box"].taskIDs.map((id, index) => (
+                <DraggableWrapper id={id} index={index} key={id} enableGhost={true}>
+                  <BlockContainer>
+                    {initialData.blocks.initial[id].content}
+                  </BlockContainer>
+                </DraggableWrapper>
+              ))}
+            </DroppableBlockStoreBox>
+            <DroppableBlockStream
+              className={"flex flex-col flex-1 border border-gray-700 p-4"}
+            >
+              {items.droppables["block-stream"].taskIDs.map((id, index) => (
+                <DraggableWrapper id={id} index={index} key={id} enableGhost={false}>
+                  <BlockContainer>
+                    {items.blocks.customize[id].content}
+                  </BlockContainer>
+                </DraggableWrapper>
+              ))}
+            </DroppableBlockStream>
+            <div className="border border-gray-700"></div>
+          </div>
+        </DragDropContext>
+      </SectionContainer>
+    </BaseContainer>
   );
 };
 
@@ -109,7 +191,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   return { props: {} };
 };
 
-const reorder = (list: [], startIndex: number, endIndex: number) => {
+const reOrder = (list: any[], startIndex: number, endIndex: number) => {
   const result = Array.from(list);
   const [removed] = result.splice(startIndex, 1);
   result.splice(endIndex, 0, removed);
@@ -118,8 +200,8 @@ const reorder = (list: [], startIndex: number, endIndex: number) => {
 };
 
 const copy = (
-  source: string[],
-  destination: string[],
+  source: any[],
+  destination: any[],
   droppableSource: DndDropResultSource,
   droppableDestination: DndDropResultDestination
 ) => {
@@ -127,8 +209,10 @@ const copy = (
 
   const sourceClone = Array.from(source);
   const destClone = Array.from(destination);
-  const item = sourceClone[droppableSource.index];
+  let item = sourceClone[droppableSource.index];
+  const newID = uuidv4();
+  item = item + "-" + newID;
 
   destClone.splice(droppableDestination.index, 0, item);
-  return destClone;
+  return [destClone, item];
 };

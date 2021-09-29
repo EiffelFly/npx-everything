@@ -7,7 +7,7 @@ interface Props {
 
 const DroppableBlockStream: FC<Props> = ({ children, className }) => {
   return (
-    <Droppable droppableId="droppable-block-stream">
+    <Droppable droppableId="block-stream">
       {(provided) => (
         <div
           className={className || ""} 
