@@ -4,7 +4,7 @@ interface Props {}
 
 const BlockContainer: FC<Props> = ({ children }) => {
   return (
-    <div className="flex flex-1 border border-gray-700 py-2 px-4 my-2">
+    <div className="flex flex-1 border border-gray-700 py-2 px-4 my-2 bg-gray-50">
       {children}
     </div>
   );

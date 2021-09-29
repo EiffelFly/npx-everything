@@ -158,7 +158,7 @@ const App: FC<Props> = () => {
               className={"flex flex-col flex-1 border border-gray-700 p-4"}
             >
               {items.droppables["block-store-box"].taskIDs.map((id, index) => (
-                <DraggableWrapper id={id} index={index} key={id}>
+                <DraggableWrapper id={id} index={index} key={id} enableGhost={true}>
                   <BlockContainer>
                     {initialData.blocks.initial[id].content}
                   </BlockContainer>
@@ -169,7 +169,7 @@ const App: FC<Props> = () => {
               className={"flex flex-col flex-1 border border-gray-700 p-4"}
             >
               {items.droppables["block-stream"].taskIDs.map((id, index) => (
-                <DraggableWrapper id={id} index={index} key={id}>
+                <DraggableWrapper id={id} index={index} key={id} enableGhost={false}>
                   <BlockContainer>
                     {items.blocks.customize[id].content}
                   </BlockContainer>
