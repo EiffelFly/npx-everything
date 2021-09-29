@@ -11,6 +11,7 @@ import { GetServerSideProps } from "next";
 import { v4 as uuidv4 } from "uuid";
 import BaseContainer from "../components/BaseContainer";
 import SectionContainer from "../components/SectionContainer";
+import BlockContainer from "../components/BlockContainer";
 
 interface Props {}
 
@@ -154,24 +155,28 @@ const App: FC<Props> = () => {
         <DragDropContext onDragEnd={onDragEndHandler}>
           <div className="flex flex-row gap-x-4">
             <DroppableBlockStoreBox
-              className={"flex flex-col flex-1 border border-gray-700"}
+              className={"flex flex-col flex-1 border border-gray-700 p-4"}
             >
               {items.droppables["block-store-box"].taskIDs.map((id, index) => (
                 <DraggableWrapper id={id} index={index} key={id}>
-                  {items.blocks.initial[id].content}
+                  <BlockContainer>
+                    {initialData.blocks.initial[id].content}
+                  </BlockContainer>
                 </DraggableWrapper>
               ))}
             </DroppableBlockStoreBox>
-            <DroppableBlockStream className={"flex flex-col flex-1 border border-gray-700"}>
+            <DroppableBlockStream
+              className={"flex flex-col flex-1 border border-gray-700 p-4"}
+            >
               {items.droppables["block-stream"].taskIDs.map((id, index) => (
                 <DraggableWrapper id={id} index={index} key={id}>
-                  {items.blocks.customize[id].content}
+                  <BlockContainer>
+                    {items.blocks.customize[id].content}
+                  </BlockContainer>
                 </DraggableWrapper>
               ))}
             </DroppableBlockStream>
-            <div className="border border-gray-700">
-
-            </div>
+            <div className="border border-gray-700"></div>
           </div>
         </DragDropContext>
       </SectionContainer>
