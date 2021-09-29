@@ -20,6 +20,14 @@ const DraggableWrapper: FC<Props> = ({ id, children, index, enableGhost }) => {
             ref={provided.innerRef}
             {...provided.draggableProps}
             {...provided.dragHandleProps}
+            style={{
+              ...provided.draggableProps.style,
+              transform: enableGhost
+                ? snapshot.isDragging
+                  ? provided.draggableProps.style?.transform
+                  : "translate(0px, 0px)"
+                : provided.draggableProps.style.transform,
+            }}
           >
             {children}
           </div>
